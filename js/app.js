@@ -28,10 +28,17 @@ $('#modalPreview').on('hidden.bs.modal', function () {
     $('.img-preview').empty();
 });
 
+
 $('#modalDownloadL8').on('shown.bs.modal', function () {
     "use strict";
     $("#modalDownloadL8 .dwn-bands").focus();
+    $("#modalDownloadL8 .dropdown-menu li a").each(function () {
+        $(this).removeClass('on');
+    });
+    $("#modalDownloadL8 .dropdown-menu li a").first().addClass("on");
+    $("#modalDownloadL8 .dropdown .btn:first-child").html($("#modalDownloadL8 .dropdown-menu li a").first().text() + ' <span class="caret"></span>');
 });
+
 
 $('#modalDownloadL8').on('hidden.bs.modal', function () {
     "use strict";
@@ -51,6 +58,11 @@ $('#modalDownloadL8').on('hidden.bs.modal', function () {
 $('#modalDownloadS2').on('shown.bs.modal', function () {
     "use strict";
     $("#modalDownloadS2 .dwn-bands").focus();
+    $("#modalDownloadS2 .dropdown-menu li a").each(function () {
+        $(this).removeClass('on');
+    });
+    $("#modalDownloadS2 .dropdown-menu li a").first().addClass("on");
+    $("#modalDownloadS2 .dropdown .btn:first-child").html($("#modalDownloadS2 .dropdown-menu li a").first().text() + ' <span class="caret"></span>');
 });
 
 $('#modalDownloadS2').on('hidden.bs.modal', function () {
@@ -264,11 +276,18 @@ function buildQueryAndRequestL8(features) {
                 scene.row = data.results[i].row.toString();
                 scene.grid = data.results[i].path + '/' + data.results[i].row;
                 scene.date = data.results[i].date;
+                scene.USGSbrowseURL = data.results[i].browseURL;
                 scene.cloud = data.results[i].cloud_coverage;
-                scene.browseURL = data.results[i].browseURL;
                 scene.usgsURL = data.results[i].cartURL;
                 scene.sceneID = data.results[i].scene_id;
                 scene.AWSurl = 'http://landsat-pds.s3.amazonaws.com/L8/' + zeroPad(data.results[i].path, 3) + '/' + zeroPad(data.results[i].row, 3) + '/' + data.results[i].sceneID + '/';
+                scene.sumAWSurl = 'https://landsatonaws.com/L8/' + zeroPad(data.results[i].path, 3) + '/' + zeroPad(data.results[i].row, 3) + '/' + data.results[i].sceneID;
+
+                if (scene.sceneID.slice(0,2) == 'LC') {
+                    scene.browseURL = scene.AWSurl + scene.sceneID + '_thumb_small.jpg';
+                } else {
+                    scene.browseURL = scene.USGSbrowseURL;
+                }
 
                 if (results.hasOwnProperty(scene.grid)) {
                     results[scene.grid].push(scene);
@@ -376,6 +395,8 @@ function feedPreviewL8(elem) {
     var res = scope.results[elem.id],
         i;
 
+
+
     for (i = 0; i < res.length; i += 1) {
         $('.img-preview').append(
             '<div class="item">' +
@@ -386,7 +407,8 @@ function feedPreviewL8(elem) {
                     '<span><i class="fa fa-cloud"></i> ' + res[i].cloud + '%</span>' +
                     '<span>Link:</span>' +
                     '<div class="btnDD" onclick="feeddownloadL8(\'' + res[i].AWSurl + '\',\'' + res[i].sceneID + '\')"><i class="fa fa-download"></i></div>' +
-                    '<a target="_blank" href="' + res[i].AWSurl + 'index.html"><img src="/img/aws.png"> </a>' +
+                    // '<a target="_blank" href="' + res[i].AWSurl + 'index.html"><img src="/img/aws.png"> </a>' +
+                    '<a target="_blank" href="' + res[i].sumAWSurl + '"><img src="/img/aws.png"> </a>' +
                     '<a target="_blank" href="' + res[i].usgsURL + '"><img src="/img/usgs.jpg"></a>' +
                 '</div>' +
                 '</div>'
@@ -662,7 +684,8 @@ if (!mapboxgl.supported()) {
     $("#modalGL").modal();
 } else {
 
-    mapboxgl.accessToken = '{YOUR-MAPBOX-TOKEN}';
+    // mapboxgl.accessToken = '{YOUR-MAPBOX-TOKEN}';
+    mapboxgl.accessToken = 'pk.eyJ1IjoidmluY2VudHNhcmFnbyIsImEiOiJjaW4xMGMyZHkwYXAxd2tsdWxzaDExMW8xIn0.P6T4W7XET__zdwzxzE3ZJg';
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/satellite-streets-v9',
